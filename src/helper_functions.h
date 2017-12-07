@@ -19,6 +19,11 @@
 const double M_PI = 3.14159265358979323846;
 #endif
 
+
+#ifndef INT_MAX
+const int INT_MAX = 32767;
+#endif
+
 /*
  * Struct representing one position/control measurement.
  */

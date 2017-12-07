@@ -25,7 +25,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	// Add random Gaussian noise to each particle.
 	// NOTE: Consult particle_filter.h for more information about this method (and others in this file).
 	default_random_engine gen;
-	double std_x, std_y, std_theta; // Standard deviations for x, y, and theta
+	double std_x, std_y, std_theta;
 	std_x = std[0];
 	std_y = std[1];
 	std_theta = std[2];
@@ -40,14 +40,15 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 		normal_distribution<double> dist_y(y, std_y);
 		normal_distribution<double> dist_theta(theta, std_theta);
 
-		// Sample  and from these normal distributions
+		// Sample and from these normal distributions
 		particle.x = dist_x(gen);
 		particle.y = dist_y(gen);
 		particle.theta = dist_theta(gen);
-		 // Set initial weight to 1
-		particle.weight = 1.0;
 
+		// Set initial weight to 1
+		particle.weight = 1.0;
 		weights.push_back(1.0);
+
 		particles.push_back(particle);
 	}
 
@@ -62,19 +63,19 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	//  http://www.cplusplus.com/reference/random/default_random_engine/
 
 	default_random_engine gen;
-	double std_x, std_y, std_theta; // Standard deviations for x, y, and theta
+	double std_x, std_y, std_theta;
 	std_x = std_pos[0];
 	std_y = std_pos[1];
 	std_theta = std_pos[2];
-	cout << "in predication" << endl;
+	//cout << "in predication" << endl;
 	for(int i = 0; i < num_particles; i++) {
 		Particle &particle = particles[i];
-		//cout << "before pred: " << particle.x <<" " << particle.y <<" " << particle.theta <<" " << endl;
+		//cout << "before prediction, particle " << i << " " << particle.x <<" " << particle.y <<" " << particle.theta <<" " << endl;
 		double pred_theta;
 		pred_theta = particle.theta + yaw_rate * delta_t;
 		if(yaw_rate == 0) {
-			particle.x += velocity * sin(particle.theta);
-			particle.y += velocity * cos(particle.theta);
+			particle.x += velocity * delta_t * sin(particle.theta);
+			particle.y += velocity * delta_t * cos(particle.theta);
 		}
 		else {
 			particle.x += (velocity / yaw_rate) * (sin(pred_theta) -  sin(particle.theta));
@@ -87,21 +88,24 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 		normal_distribution<double> dist_y(particle.y, std_y);
 		normal_distribution<double> dist_theta(particle.theta, std_theta);
 
-		// Sample  and from these normal distributions
+		// Sample and from these normal distributions
 		particle.x = dist_x(gen);
 		particle.y = dist_y(gen);
 		particle.theta = dist_theta(gen);
-		cout << "after pred: " << particle.x <<" " << particle.y <<" " << particle.theta <<" " << endl;
+		//cout << "after prediction, particle " << i << " " << particle.x <<" " << particle.y <<" " << particle.theta <<" " << endl;
+		//cout << endl;
 	}
 
 }
-// TODO: ?? because the radar can onl detect 50m?
+
+
 void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations) {
 	// TODO: Find the predicted measurement that is closest to each observed measurement and assign the 
 	//   observed measurement to this particular landmark.
 	// NOTE: this method will NOT be called by the grading code. But you will probably find it useful to 
 	//   implement this method and use it as a helper during the updateWeights phase.
 
+	//To Reviewer: I didn't implement this function as I did all the word in function of updateWeights()
 
 }
 
@@ -118,9 +122,9 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	//   3.33
 	//   http://planning.cs.uiuc.edu/node99.html
 
-	// Homogenous Transformation: from Car coordinates to Map coordinates
-	cout << "in update" << endl;
-    //cout << "the size of observations is: " << observations.size() << endl;
+
+	// cout << "in update" << endl;
+    // cout << "the size of observations is: " << observations.size() << endl;
 	float std_lm_x = std_landmark[0];
 	float std_lm_y = std_landmark[1];
 	float gauss_norm = 1/(2*M_PI*std_lm_x*std_lm_y);
@@ -134,62 +138,47 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		particle_theta = particle.theta;
 
 		float prob = 1.0;
-
 		for(int j = 0; j < observations.size(); j++) {
 			// cout << observations[j].x <<" " << observations[j].y << endl;
+
+			// Homogenous Transformation: from Car coordinates to Map coordinates
 			float obs_x, obs_y, tobs_x, tobs_y;
 			obs_x = observations[j].x;
 			obs_y = observations[j].y;
 			tobs_x = particle_x + cos(particle_theta) * obs_x - sin(particle_theta) * obs_y;
 			tobs_y = particle_y + sin(particle_theta) * obs_x +  cos(particle_theta) * obs_y;
-			cout << "obs_x, tobs_x, obs_y, tobs_y: " << obs_x << " "  << tobs_x << " " <<  obs_y  << " " << tobs_y << endl;
-			float shortest_dist = 1000000000;
+			// cout << "obs_x, tobs_x, obs_y, tobs_y: " << obs_x << " "  << tobs_x << " " <<  obs_y  << " " << tobs_y << endl;
+
+			// Find the closest map landmark for each observation/measurement
+			float shortest_dist = INT_MAX;
 			int closest_landmark_x, closest_landmark_y;
 			for(int k = 0; k < map_landmarks.landmark_list.size(); k++) {
 				float landmark_x, landmark_y, tobs_landmark_dist;
 				landmark_x = map_landmarks.landmark_list[k].x_f;
 				landmark_y = map_landmarks.landmark_list[k].y_f;
 				tobs_landmark_dist = dist(tobs_x, tobs_y, landmark_x, landmark_y);
-				if(tobs_landmark_dist > sensor_range) continue;
 				if(shortest_dist > tobs_landmark_dist) {
 					shortest_dist =  tobs_landmark_dist;
 					closest_landmark_x = landmark_x;
 					closest_landmark_y = landmark_y;
 					}
 				}
-			cout << "find closet landmark: " << tobs_x <<" " << closest_landmark_x <<" " << tobs_y <<" " << closest_landmark_y << endl;
+			// cout << "find closet landmark: " << tobs_x <<" " << closest_landmark_x <<" " << tobs_y <<" " << closest_landmark_y << endl;
 
+			// Calculate particle weights and final weight
 			float exponent = pow(tobs_x - closest_landmark_x, 2) / (2 * pow(std_lm_x, 2))
 							 + pow(tobs_y - closest_landmark_y, 2) / (2 * pow(std_lm_y, 2));
-			cout <<"-exponent: " << -exponent << endl;
+
 			prob *= gauss_norm *  exp(-exponent);
-			cout << "prob = " << prob << endl;
 
 
 		}
+
+		// Update weights of particles
 		particle.weight = prob;
-
-		cout <<"update particle done: " <<" " <<  particle.x <<" " <<  particle.y <<" " <<  particle.weight << endl;
-
+		weights[i] = prob;
+		//cout <<"update particle done: " <<" " <<  particle.x <<" " <<  particle.y <<" " <<  particle.weight << endl;
 	}
-
-	// Multivariate-Gaussian Probability
-
-
-	/*
-
-	// normalization weight
-	float weights_sum = 0.0;
-	for(int i = 0; i < num_particles; i++) {
-		weights_sum += particles[i].weight;
-	}
-	for(int i = 0; i < num_particles; i++)  {
-		if(weights_sum != 0) {
-			particles[i].weight = particles[i].weight / weights_sum;
-			weights[i] = prob;
-		}
-	}
-	*/
 
 }
 
@@ -198,6 +187,7 @@ void ParticleFilter::resample() {
 	// NOTE: You may find std::discrete_distribution helpful here.
 	//   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
 
+	// Resample particles with replacement with probability proportional to their weight
 	std::vector<Particle> particles_resampled;
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -211,9 +201,11 @@ void ParticleFilter::resample() {
         p.weight = 1.0;
         particles_resampled.push_back(p);
     }
-    //particles = particles_resampled;
+
+    // Update particles and weights
     for(int n=0; n<num_particles; ++n) {
     		particles[n] = particles_resampled[n];
+    		weights[n] = 1.0;
     }
 
 
@@ -230,6 +222,7 @@ Particle ParticleFilter::SetAssociations(Particle& particle, const std::vector<i
     particle.associations= associations;
     particle.sense_x = sense_x;
     particle.sense_y = sense_y;
+    return particle;
 
 }
 
