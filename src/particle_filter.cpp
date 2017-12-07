@@ -3,6 +3,8 @@
  *
  *  Created on: Dec 12, 2016
  *      Author: Tiffany Huang
+ * Updated on: Dec 6, 2016
+ *      Author: Leo Lei
  */
 
 #include <random>
@@ -67,10 +69,8 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	std_x = std_pos[0];
 	std_y = std_pos[1];
 	std_theta = std_pos[2];
-	//cout << "in predication" << endl;
 	for(int i = 0; i < num_particles; i++) {
 		Particle &particle = particles[i];
-		//cout << "before prediction, particle " << i << " " << particle.x <<" " << particle.y <<" " << particle.theta <<" " << endl;
 		double pred_theta;
 		pred_theta = particle.theta + yaw_rate * delta_t;
 		if(yaw_rate == 0) {
@@ -92,8 +92,6 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 		particle.x = dist_x(gen);
 		particle.y = dist_y(gen);
 		particle.theta = dist_theta(gen);
-		//cout << "after prediction, particle " << i << " " << particle.x <<" " << particle.y <<" " << particle.theta <<" " << endl;
-		//cout << endl;
 	}
 
 }
@@ -122,16 +120,12 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	//   3.33
 	//   http://planning.cs.uiuc.edu/node99.html
 
-
-	// cout << "in update" << endl;
-    // cout << "the size of observations is: " << observations.size() << endl;
 	float std_lm_x = std_landmark[0];
 	float std_lm_y = std_landmark[1];
 	float gauss_norm = 1/(2*M_PI*std_lm_x*std_lm_y);
 
 	for(int i = 0; i < num_particles; i++) {
 		Particle &particle = particles[i];
-		// cout <<"updating particle: " <<" " <<  particle.x <<" " <<  particle.y <<" " <<  particle.weight << endl;
 		float particle_x, particle_y, particle_theta;
 		particle_x = particle.x;
 		particle_y = particle.y;
@@ -139,15 +133,12 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
 		float prob = 1.0;
 		for(int j = 0; j < observations.size(); j++) {
-			// cout << observations[j].x <<" " << observations[j].y << endl;
-
 			// Homogenous Transformation: from Car coordinates to Map coordinates
 			float obs_x, obs_y, tobs_x, tobs_y;
 			obs_x = observations[j].x;
 			obs_y = observations[j].y;
 			tobs_x = particle_x + cos(particle_theta) * obs_x - sin(particle_theta) * obs_y;
 			tobs_y = particle_y + sin(particle_theta) * obs_x +  cos(particle_theta) * obs_y;
-			// cout << "obs_x, tobs_x, obs_y, tobs_y: " << obs_x << " "  << tobs_x << " " <<  obs_y  << " " << tobs_y << endl;
 
 			// Find the closest map landmark for each observation/measurement
 			float shortest_dist = INT_MAX;
@@ -163,23 +154,27 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 					closest_landmark_y = landmark_y;
 					}
 				}
-			// cout << "find closet landmark: " << tobs_x <<" " << closest_landmark_x <<" " << tobs_y <<" " << closest_landmark_y << endl;
 
 			// Calculate particle weights and final weight
 			float exponent = pow(tobs_x - closest_landmark_x, 2) / (2 * pow(std_lm_x, 2))
 							 + pow(tobs_y - closest_landmark_y, 2) / (2 * pow(std_lm_y, 2));
-
 			prob *= gauss_norm *  exp(-exponent);
-
-
 		}
 
 		// Update weights of particles
+
 		particle.weight = prob;
-		weights[i] = prob;
-		//cout <<"update particle done: " <<" " <<  particle.x <<" " <<  particle.y <<" " <<  particle.weight << endl;
 	}
 
+	// Normalize the weights
+	float sum_weights = 0.0;
+	for(int i = 0; i < num_particles; i++) {
+		sum_weights += particles[i].weight;
+	}
+	for(int i = 0; i < num_particles; i++) {
+		particles[i].weight /= sum_weights;
+		weights[i] = particles[i].weight;
+	}
 }
 
 void ParticleFilter::resample() {
@@ -198,17 +193,16 @@ void ParticleFilter::resample() {
         p.x = particles[i].x;
         p.y = particles[i].y;
         p.theta = particles[i].theta;
-        p.weight = 1.0;
+        p.weight = particles[i].weight;
+
         particles_resampled.push_back(p);
     }
 
     // Update particles and weights
     for(int n=0; n<num_particles; ++n) {
     		particles[n] = particles_resampled[n];
-    		weights[n] = 1.0;
+    		weights[n] = particles[n].weight;
     }
-
-
 }
 
 Particle ParticleFilter::SetAssociations(Particle& particle, const std::vector<int>& associations, 
