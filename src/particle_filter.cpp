@@ -121,7 +121,9 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	//   http://planning.cs.uiuc.edu/node99.html
 
 	float std_lm_x = std_landmark[0];
+	float var_lm_x = pow(std_lm_x, 2);
 	float std_lm_y = std_landmark[1];
+	float var_lm_y = pow(std_lm_y, 2);
 	float gauss_norm = 1/(2*M_PI*std_lm_x*std_lm_y);
 
 	for(int i = 0; i < num_particles; i++) {
@@ -156,8 +158,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 				}
 
 			// Calculate particle weights and final weight
-			float exponent = pow(tobs_x - closest_landmark_x, 2) / (2 * pow(std_lm_x, 2))
-							 + pow(tobs_y - closest_landmark_y, 2) / (2 * pow(std_lm_y, 2));
+			float exponent = pow(tobs_x - closest_landmark_x, 2) / (2 * var_lm_x)
+							 + pow(tobs_y - closest_landmark_y, 2) / (2 * var_lm_y);
 			prob *= gauss_norm *  exp(-exponent);
 		}
 
