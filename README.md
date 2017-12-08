@@ -6,10 +6,10 @@ In this project I implemented a 2 dimensional particle filter in C++. The partic
 
 ## Results
 
-### Result of final submission()
+### Result of final submission ([code](https://github.com/leros/Self-Driving-Car-Kidnapped-Vehicle-Project/blob/2b247d64ffe2afe7088213d7c8146e2e5b73861c/src/particle_filter.cpp))
 ![](./assets/images/final_submissions.png)
 
-### Fix a data type bug and cut the errors()
+### Fix a data type bug and cut the errors([code](https://github.com/leros/Self-Driving-Car-Kidnapped-Vehicle-Project/commit/2e2dd03c71278fb8bbae16bb1c4a5160edaf7db2))
 ![](./assets/images/fix_a_data_type_bug.png)
 
 # Implementing the Particle Filter
