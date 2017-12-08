@@ -144,7 +144,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
 			// Find the closest map landmark for each observation/measurement
 			float shortest_dist = INT_MAX;
-			int closest_landmark_x, closest_landmark_y;
+			float closest_landmark_x, closest_landmark_y;
 			for(int k = 0; k < map_landmarks.landmark_list.size(); k++) {
 				float landmark_x, landmark_y, tobs_landmark_dist;
 				landmark_x = map_landmarks.landmark_list[k].x_f;
