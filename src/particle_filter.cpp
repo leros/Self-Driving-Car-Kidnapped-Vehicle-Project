@@ -69,6 +69,11 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	std_x = std_pos[0];
 	std_y = std_pos[1];
 	std_theta = std_pos[2];
+	// Creates a normal (Gaussian) distribution for x, y, and theta
+	normal_distribution<double> dist_x(0, std_x);
+	normal_distribution<double> dist_y(0, std_y);
+	normal_distribution<double> dist_theta(0, std_theta);
+
 	for(int i = 0; i < num_particles; i++) {
 		Particle &particle = particles[i];
 		double pred_theta;
@@ -83,15 +88,10 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 		}
 		particle.theta = pred_theta;
 
-		// Creates a normal (Gaussian) distribution for x, y, and theta
-		normal_distribution<double> dist_x(particle.x, std_x);
-		normal_distribution<double> dist_y(particle.y, std_y);
-		normal_distribution<double> dist_theta(particle.theta, std_theta);
-
 		// Sample and from these normal distributions
-		particle.x = dist_x(gen);
-		particle.y = dist_y(gen);
-		particle.theta = dist_theta(gen);
+		particle.x += dist_x(gen);
+		particle.y += dist_y(gen);
+		particle.theta += dist_theta(gen);
 	}
 
 }
