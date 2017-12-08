@@ -74,8 +74,8 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 		double pred_theta;
 		pred_theta = particle.theta + yaw_rate * delta_t;
 		if(yaw_rate == 0) {
-			particle.x += velocity * delta_t * sin(particle.theta);
-			particle.y += velocity * delta_t * cos(particle.theta);
+			particle.x += velocity * delta_t * cos(particle.theta);
+			particle.y += velocity * delta_t * sin(particle.theta);
 		}
 		else {
 			particle.x += (velocity / yaw_rate) * (sin(pred_theta) -  sin(particle.theta));
@@ -103,7 +103,7 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 	// NOTE: this method will NOT be called by the grading code. But you will probably find it useful to 
 	//   implement this method and use it as a helper during the updateWeights phase.
 
-	//To Reviewer: I didn't implement this function as I did all the word in function of updateWeights()
+	//To Reviewer: I didn't implement this function as I did all the work in function of updateWeights()
 
 }
 
