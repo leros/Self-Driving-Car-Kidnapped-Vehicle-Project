@@ -10,7 +10,7 @@ In this project you will implement a 2 dimensional particle filter in C++. Your 
 ![](./assets/images/final_submissions.png)
 
 ### Fix a data type bug and cut the errors()
-![](./assets/images/fix_a_data_type_bug.png =250x)
+![](./assets/images/fix_a_data_type_bug.png)
 
 # Implementing the Particle Filter
 The directory structure of this repository is as follows:
