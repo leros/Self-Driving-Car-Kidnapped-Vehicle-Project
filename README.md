@@ -1,5 +1,10 @@
+[![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
 
-## Project Introduction
+
+### PART 2: Sensor Fusion, Localization, and Control
+### Project 3: Kidnapped Vehicle: particle filter 
+
+
 The robot has been kidnapped and transported to a new location! Luckily it has a map of this location, a (noisy) GPS estimate of its initial location, and lots of (noisy) sensor and control data.
 
 In this project I implemented a 2 dimensional particle filter in C++. The particle filter was given a map and some initial localization information (analogous to what a GPS would provide). At each time step it would also get observation and control data. 
